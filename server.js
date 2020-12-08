@@ -1,40 +1,30 @@
-// Import npm packages
 const express = require('express');
-const mongoose = require('mongoose');
-const morgan = require('morgan');
+const connectDB = require('./config/db');
 const path = require('path');
-require('dotenv').config()
+
 const app = express();
-const PORT = process.env.PORT || 8080; // Step 1
 
-const routes = require('./routes/api');
+// Connect Database
+connectDB();
 
-// Step 2
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/mern_youtube', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+// Init Middleware
+app.use(express.json({ extended: false }));
 
-mongoose.connection.on('connected', () => {
-    console.log('Mongoose is connected!!!!');
-});
+// Define Routes
+app.use('/api/users', require('./routes/users'));
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/contacts', require('./routes/contacts'));
 
-// Data parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-// Step 3
-
+// Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static('client/build'));
+  // Set static folder
+  app.use(express.static('client/build'));
+
+  app.get('*', (req, res) =>
+    res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'))
+  );
 }
 
+const PORT = process.env.PORT || 5000;
 
-// HTTP request logger
-app.use(morgan('tiny'));
-app.use('/api', routes);
-
-
-
-
-app.listen(PORT, console.log(`Server is starting at ${PORT}`));
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

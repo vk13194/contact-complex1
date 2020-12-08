@@ -1,125 +1,41 @@
-import React from 'react';
-import axios from 'axios';
+import React, { Fragment } from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Navbar from './components/layout/Navbar';
+import Home from './components/pages/Home';
+import About from './components/pages/About';
+import Register from './components/auth/Register';
+import Login from './components/auth/Login';
+import Alerts from './components/layout/Alerts';
+import PrivateRoute from './components/routing/PrivateRoute';
 
-
+import ContactState from './context/contact/ContactState';
+import AuthState from './context/auth/AuthState';
+import AlertState from './context/alert/AlertState';
 import './App.css';
 
-class App extends React.Component {
-
-  state = {
-    title: '',
-    body: '',
-    posts: []
-  };
-
-  componentDidMount = () => {
-    this.getBlogPost();
-  };
-
-
-  getBlogPost = () => {
-    axios.get('/api')
-      .then((response) => {
-        const data = response.data;
-        this.setState({ posts: data });
-        console.log('Data has been received!!');
-      })
-      .catch(() => {
-        alert('Error retrieving data!!!');
-      });
-  }
-
-  handleChange = ({ target }) => {
-    const { name, value } = target;
-    this.setState({ [name]: value });
-  };
-
-
-  submit = (event) => {
-    event.preventDefault();
-
-    const payload = {
-      title: this.state.title,
-      body: this.state.body
-    };
-
-
-    axios({
-      url: '/api/save',
-      method: 'POST',
-      data: payload
-    })
-      .then(() => {
-        console.log('Data has been sent to the server');
-        this.resetUserInputs();
-        this.getBlogPost();
-      })
-      .catch(() => {
-        console.log('Internal server error');
-      });;
-  };
-
-  resetUserInputs = () => {
-    this.setState({
-      title: '',
-      body: ''
-    });
-  };
-
-  displayBlogPost = (posts) => {
-
-    if (!posts.length) return null;
-
-
-    return posts.map((post, index) => (
-      <div key={index} className="blog-post__display">
-        <h3>{post.title}</h3>
-        <p>{post.body}</p>
-      </div>
-    ));
-  };
-
-  render() {
-
-    console.log('State: ', this.state);
-
-    //JSX
-    return(
-      <div className="app">
-        <h2>Welcome to the best app ever</h2>
-        <form onSubmit={this.submit}>
-          <div className="form-input">
-            <input 
-              type="text"
-              name="title"
-              placeholder="Title"
-              value={this.state.title}
-              onChange={this.handleChange}
-            />
-          </div>
-          <div className="form-input">
-            <textarea
-              placeholder="body"
-              name="body"
-              cols="30"
-              rows="10"
-              value={this.state.body}
-              onChange={this.handleChange}
-            >
-              
-            </textarea>
-          </div>
-
-          <button>Submit</button>
-        </form>
-
-        <div className="blog-">
-          {this.displayBlogPost(this.state.posts)}
-        </div>
-      </div>
-    );
-  }
-}
-
+const App = () => {
+  return (
+    <AuthState>
+      <ContactState>
+        <AlertState>
+          <Router>
+            <Fragment>
+              <Navbar />
+              <div className='container'>
+                <Alerts />
+                <Switch>
+                  <PrivateRoute exact path='/' component={Home} />
+                  <Route exact path='/about' component={About} />
+                  <Route exact path='/register' component={Register} />
+                  <Route exact path='/login' component={Login} />
+                </Switch>
+              </div>
+            </Fragment>
+          </Router>
+        </AlertState>
+      </ContactState>
+    </AuthState>
+  );
+};
 
 export default App;
